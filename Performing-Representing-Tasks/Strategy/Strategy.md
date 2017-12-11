@@ -1,0 +1,5 @@
+The Strategy Pattern
+----
+
+
+
