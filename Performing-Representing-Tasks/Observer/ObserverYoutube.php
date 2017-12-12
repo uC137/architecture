@@ -4,7 +4,7 @@
 interface SubjectInterface {
 	public function attachObserver( ObserverInterface $observer );
 
-	public function detach( ObserverInterface $observer );
+	public function detachObserver( ObserverInterface $observer );
 
 	public function notify(EventInterface $event);
 }
@@ -14,6 +14,8 @@ interface ObserverInterface {
 }
 
 interface EventInterface{
+
+
 	public function getName();
 	public function getSender();
 }
@@ -36,7 +38,7 @@ class FootbalTeam implements SubjectInterface {
 		$this->observers[] = $observer;
 	}
 
-	public function detach( ObserverInterface $observer ) {
+	public function detachObserver( ObserverInterface $observer ) {
 		foreach ( $this->observers as $key => $obs ) {
 			if ( $obs === $observer ) {
 				unset( $this->observers[ $key ] );
@@ -48,17 +50,30 @@ class FootbalTeam implements SubjectInterface {
 
 	public function notify(EventInterface $event) {
 		foreach ( $this->observers as $obs ) {
-			$obs->update( $this );
+			$obs->update( $event );
 		}
 	}
 
+
+	public function goalAction() {
+		$event = new FootballEvent( FootballEvent::GOAL , $this);
+		$this->notify($event);
+	}
+	public function goalEnemyAction() {
+		$event = new FootballEvent( FootballEvent::GOAL_ENEMY , $this);
+		$this->notify($event);
+	}
+	public function fightAction() {
+		$event = new FootballEvent( FootballEvent::FIGHT , $this);
+		$this->notify($event);
+	}
 }
 
-class FootballEvent implements EventInterface{
+class FootballEvent implements EventInterface {
 
-	const GOAL = 'Goal';
-	const GOAL_ENEMY = 'Fuck NOOO!';
-	const FIGHT = 'Fight';
+	const GOAL = 'Goal! ';
+	const GOAL_ENEMY = 'Fuck NOOO! ';
+	const FIGHT = 'Fight ';
 
 	private $name;
 	private $sender;
@@ -69,7 +84,7 @@ class FootballEvent implements EventInterface{
 	 * @param $name
 	 * @param $sender
 	 */
-	public function __construct( $name, $sender ) {
+	public function __construct( $name, FootbalTeam $sender ) {
 		$this->name   = $name;
 		$this->sender = $sender;
 	}
@@ -79,8 +94,9 @@ class FootballEvent implements EventInterface{
 	}
 
 	public function getSender() {
-		$this->sender;
+		return $this->sender;
 	}
+
 }
 
 class FootballFan implements ObserverInterface {
@@ -96,20 +112,37 @@ class FootballFan implements ObserverInterface {
 	}
 
 	public function update( EventInterface $event ) {
+
+		switch ($event->getName()){
+			case FootballEvent::GOAL:
+					echo "GOAAAAAL ! {$this->getName()}";
+				break;
+			case FootballEvent::GOAL_ENEMY:
+					echo "Oh NOOO ! {$this->getName()}";
+				break;
+			case FootballEvent::FIGHT:
+					echo "GO boys ! {$this->getName()}";
+				break;
+		}
+
+
 		echo $event->getName() . " reacted to {$event->getSender()->getName()}! \n";
 	}
 }
 
 
 $team = new FootbalTeam( 'Dinamo' );
-$fan1 = new FootballFan('Varketili');
-$fan2 = new FootballFan('Gldani');
+$fan1 = new FootballFan('GoderZI ');
+$fan2 = new FootballFan('MAimuni Lawiraki ');
 
 $team->attachObserver( $fan1 );
 $team->attachObserver( $fan2 );
 
+$team->goalAction();
 
-//$team->notify();
+$team->detachObserver( $fan1 );
+$team->goalEnemyAction();
 
-$team->detach( $fan1 );
-$team->notify();
+$fan3 = new FootballFan('Gary Tapor ');
+$team->attachObserver( $fan3 );
+$team->fightAction();
